@@ -112,10 +112,10 @@ public class GeneticAlgorithmVRP
 
         //Single Point Crossover in the same order
         //Try to implement Order Crossover and/or multiple point crossover
-        List<int> sublist1 = parent1.GetRange(0, crossoverPoint);
-        List<int> sublist2 = parent1.GetRange(crossoverPoint, parent1.Count - crossoverPoint);
-        List<int> sublist3 = parent2.GetRange(0, crossoverPoint);
-        List<int> sublist4 = parent2.GetRange(crossoverPoint, parent2.Count - crossoverPoint);
+        List<int> sublist1 = new(parent1.GetRange(0, crossoverPoint)); 
+        List<int> sublist2 = new(parent1.GetRange(crossoverPoint, parent1.Count - crossoverPoint));
+        List<int> sublist3 = new(parent2.GetRange(0, crossoverPoint));
+        List<int> sublist4 = new(parent2.GetRange(crossoverPoint, parent2.Count - crossoverPoint));
 
         offspring1.AddRange(sublist1);
         offspring1.AddRange(sublist4);

@@ -163,6 +163,6 @@ public class GeneticAlgorithmVRP
     }
 
     private string Solve(List<string> population) {
-        
+        //xota2
     }
 }

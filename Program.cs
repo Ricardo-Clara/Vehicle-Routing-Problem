@@ -158,11 +158,10 @@ public class GeneticAlgorithmVRP
     geração
     */
     private string TournamentSelection(List<string> population) {
-        //xota
-
+        // Tournament Selection
     }
 
     private string Solve(List<string> population) {
-        //xota2
+        // Solve
     }
 }

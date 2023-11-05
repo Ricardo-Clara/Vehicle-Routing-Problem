@@ -1,0 +1,5 @@
+# Object files (ignore obj and subfolders and files):
+obj/
+
+# Bin files
+bin/

@@ -157,11 +157,11 @@ public class GeneticAlgorithmVRP
     Tournament selection (TS) - escolher dois individuos ao calhas, o que tiver o maior valor de fitness passa para a próxima
     geração
     */
-    private string TournamentSelection(List<List<int>> population) {
-        // Tournament Selection
+    private List<List<int>> TournamentSelection(List<List<int>> population) {
+      return population;
     }
 
-    private string Solve(List<List<int>> population) {
-        // Solve
+    static void Main(string[] args) {
+        Console.WriteLine("Hello World!");
     }
 }

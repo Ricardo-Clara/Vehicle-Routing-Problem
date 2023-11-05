@@ -1,2 +1,10 @@
+<<<<<<< HEAD
 obj
 bin
+=======
+# Object files (ignore obj and subfolders and files):
+obj/
+
+# Bin files
+bin/
+>>>>>>> d8dd4ccf9cbf08896050d788fc812fd329f3d51e

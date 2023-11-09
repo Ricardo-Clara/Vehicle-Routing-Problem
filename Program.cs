@@ -13,9 +13,8 @@ public class GeneticAlgorithmVRP
         public List<double[]>? IdDemands { get; set; }
     }
 
-    ProblemData problemData = new();
-    
-    void LoadCoordinates(string path) {
+  
+    void LoadCoordinates(string path, ProblemData problemData) {
         XDocument doc = XDocument.Load(path);
 
         List<double[]> coordinates = new();
@@ -51,7 +50,7 @@ public class GeneticAlgorithmVRP
     }
 
 
-    private void CalcDistanceMatrix(List<double[]> coordinates) {
+    private void CalcDistanceMatrix(List<double[]> coordinates, ProblemData problemData) {
             int numLocations = coordinates.Count;
             double[,] distanceMatrix = new double[numLocations, numLocations];
 
@@ -65,39 +64,44 @@ public class GeneticAlgorithmVRP
     }
     
 
-    List<List<int>> GenerateFirstPopulation(List<double[]> idDemands, List<double> capacities) {
+    List<List<int>> GenerateFirstPopulation(List<double[]> idDemands, List<double> capacities, int populationSize) {
         List<List<int>> population = new();
-        int amount = 0;
+        int currentPopulationSize = 0;
         Random random = new();
 
-        while (amount <= 10) {
+        while (currentPopulationSize <= populationSize) {
             List<double[]> idDemandsCopy = new (idDemands);
             int size = idDemandsCopy.Count;
-            List<int> route = new List<int>(){0};
-            double count = 0;
+            List<int> route = new(){0};
+            double currentCapacity = 0;
 
             for (int i = 0; i < size; i++) {
                 int randomNumber = random.Next(0, idDemandsCopy.Count);
 
-                if (count + idDemandsCopy[randomNumber][1] >= capacities[0]) idDemandsCopy.RemoveAt(randomNumber); 
-                else {
-                    count += idDemandsCopy[randomNumber][1];
+                if  (currentCapacity + idDemandsCopy[randomNumber][1] >= capacities[0]) {
+                    route.Add(0);
+                    route.Add(Convert.ToInt32(idDemandsCopy[randomNumber][0]));
+                    idDemandsCopy.RemoveAt(randomNumber);
+                    currentCapacity = 0;
+
+                } else {
+                    currentCapacity += idDemandsCopy[randomNumber][1];
                     route.Add(Convert.ToInt32(idDemandsCopy[randomNumber][0]));
                     idDemandsCopy.RemoveAt(randomNumber);
                 }
             }
             route.Add(0);
             population.Add(route);
-            amount++;
+            currentPopulationSize++;
         }
         return population;
     }
 
-    private double Fitness(string route, double[,] distanceMatrix) {
+    private double Fitness(List<int> route, double[,] distanceMatrix) {
         double totalDistance = 0;
 
         
-        for (int i = 0; i < route.Length - 1; i++) {
+        for (int i = 0; i < route.Count - 1; i++) {
             totalDistance += distanceMatrix[i, i + 1];
         }
 
@@ -105,8 +109,30 @@ public class GeneticAlgorithmVRP
     }
     
 
-    private List<List<int>> Crossover(List<int> parent1, List<int> parent2, int crossoverPoint, double crossoverChance) {
+    private List<List<int>> Crossover(List<List<int>> population, double crossoverChance) {
+        Random random = new();
+        List<List<int>> newPopulation = new();
 
+        for (int i = 0; i < population.Count; i += 2) {
+            double randomNumber = random.NextDouble();
+
+            if (randomNumber < crossoverChance) {
+                List<List<int>> offsprings = new();
+                
+                int crossoverPoint = random.Next(1, population[i].Count - 2);
+                offsprings = OrderCrossover(population[i], population[i + 1], crossoverPoint);
+                newPopulation.AddRange(offsprings);
+
+            } else {
+                newPopulation.Add(population[i]);
+                newPopulation.Add(population[i + 1]);
+            }
+        }
+
+        return newPopulation;
+    }
+
+    private List<List<int>> OrderCrossover(List<int> parent1, List<int> parent2, int crossoverPoint) {
         List<int> offspring1 = new();
         List<int> offspring2 = new();
 
@@ -123,14 +149,15 @@ public class GeneticAlgorithmVRP
         offspring2.AddRange(sublist3);
         offspring2.AddRange(sublist2);
 
-        List<List<int>> offsprings = new(){offspring1, offspring2};
+        // List<List<int>> offsprings = new(){offspring1, offspring2};
 
-        return offsprings;
+        return new(){offspring1, offspring2};
     }
+
 
     private List<int> Mutation(List<int> route, float mutationChance) {
         //Choose two indexes and swap them
-        double randomNumber = 0;
+        double randomNumber;
         Random random = new();
 
         for (int i = 1; i < route.Count - 1; i++) {
@@ -157,11 +184,45 @@ public class GeneticAlgorithmVRP
     Tournament selection (TS) - escolher dois individuos ao calhas, o que tiver o maior valor de fitness passa para a próxima
     geração
     */
-    private List<List<int>> TournamentSelection(List<List<int>> population) {
-      return population;
+    private List<List<int>> TournamentSelection(List<List<int>> population, ProblemData problemData) {
+        List<List<int>> selectedPopulation = new();
+        int size = population.Count;
+        Random random = new();
+
+        while (selectedPopulation.Count < size) {
+            int firstIndex = random.Next(0, size);
+            int secondIndex = random.Next(0, size);
+
+            if (Fitness(population[firstIndex], problemData.DistanceMatrix!) < Fitness(population[secondIndex], problemData.DistanceMatrix!)) {
+                selectedPopulation.Add(population[firstIndex]);
+            } else {
+                selectedPopulation.Add(population[secondIndex]);
+            }
+        }
+
+        return selectedPopulation;
     }
 
     static void Main(string[] args) {
-        Console.WriteLine("Hello World!");
+        ProblemData problemData = new();
+        // Get path from user
+        LoadCoordinates(path, problemData);
+        CalcDistanceMatrix(problemData.Coordinates!, problemData);
+        // Get population size from user
+        List<List<int>> population = GenerateFirstPopulation(problemData.IdDemands!, problemData.Capacities!, 10);
+        // Get generations from user
+        int generations = 1000;
+
+        for (int i = 0; i < generations; i++) {
+            population = TournamentSelection(population, problemData);
+            // Get crossover chance from user
+            population = Crossover(population, 0.8);
+            // Get mutation chance from user
+            population = population.Select(route => Mutation(route, 0.1f)).ToList();
+        }
+
+        List<int> bestRoute = population.OrderBy(route => Fitness(route, problemData.DistanceMatrix!)).First();
+        double bestFitness = Fitness(bestRoute, problemData.DistanceMatrix!);
+        Console.WriteLine($"Best solution: {bestRoute} with fitness {bestFitness}");
     }
 }

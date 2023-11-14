@@ -102,7 +102,7 @@ public class GeneticAlgorithmVRP
 
         
         for (int i = 0; i < route.Count - 1; i++) {
-            totalDistance += distanceMatrix[i, i + 1];
+            totalDistance += distanceMatrix[route[i], route[i + 1]];
         }
 
         return totalDistance;
@@ -113,13 +113,13 @@ public class GeneticAlgorithmVRP
         Random random = new();
         List<List<int>> newPopulation = new();
 
-        for (int i = 0; i < population.Count; i += 2) {
+        for (int i = 0; i < population.Count - 1; i += 2) {
             double randomNumber = random.NextDouble();
 
             if (randomNumber < crossoverChance) {
                 List<List<int>> offsprings = new();
                 
-                int crossoverPoint = random.Next(1, population[i].Count - 2);
+                int crossoverPoint = random.Next(1, Math.Min(population[i].Count, population[i + 1].Count) - 2);
                 offsprings = OrderCrossover(population[i], population[i + 1], crossoverPoint);
                 newPopulation.AddRange(offsprings);
 
@@ -203,11 +203,25 @@ public class GeneticAlgorithmVRP
         return selectedPopulation;
     }
 
+    private string printRoute(List<int> route) {
+        int i = 1;
+        string routeString = "";
+        foreach (int node in route) {
+            if (i == route.Count) {
+                routeString += $"{node}";
+            } else {
+                routeString += $"{node} -> ";
+                i++;
+            }
+        }
+        return routeString;
+    }
+
     static void Main(string[] args) {
         GeneticAlgorithmVRP geneticAlgorithmVRP = new();
         ProblemData problemData = new();
         // Get path from user
-        geneticAlgorithmVRP.LoadCoordinates("", problemData);
+        geneticAlgorithmVRP.LoadCoordinates("C:\\Users\\rvcla\\OneDrive\\Desktop\\F-n045-k4.xml", problemData);
         geneticAlgorithmVRP.CalcDistanceMatrix(problemData.Coordinates!, problemData);
         // Get population size from user
         List<List<int>> population = geneticAlgorithmVRP.GenerateFirstPopulation(problemData.IdDemands!, problemData.Capacities!, 10);
@@ -217,13 +231,13 @@ public class GeneticAlgorithmVRP
         for (int i = 0; i < generations; i++) {
             population = geneticAlgorithmVRP.TournamentSelection(population, problemData);
             // Get crossover chance from user
-            population = geneticAlgorithmVRP.Crossover(population, 0.8);
+            population = geneticAlgorithmVRP.Crossover(population, 0.1);
             // Get mutation chance from user
-            population = population.Select(route => geneticAlgorithmVRP.Mutation(route, 0.1f)).ToList();
+            population = population.Select(route => geneticAlgorithmVRP.Mutation(route, 0.01f)).ToList();
         }
 
         List<int> bestRoute = population.OrderBy(route => geneticAlgorithmVRP.Fitness(route, problemData.DistanceMatrix!)).First();
         double bestFitness = geneticAlgorithmVRP.Fitness(bestRoute, problemData.DistanceMatrix!);
-        Console.WriteLine($"Best solution: {bestRoute} with fitness {bestFitness}");
+        Console.WriteLine($"Best solution: {geneticAlgorithmVRP.printRoute(bestRoute)} with fitness {bestFitness}");
     }
 }

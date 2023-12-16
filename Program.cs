@@ -11,6 +11,7 @@ public class GeneticAlgorithmVRP
         public double[,]? DistanceMatrix { get; set; }
         public double? Capacity { get; set; }
         public List<double[]>? IdDemands { get; set; }
+        public int Offset { get; set;}
         public int DepartureNodeId { get; set; }
     }
 
@@ -52,10 +53,12 @@ public class GeneticAlgorithmVRP
             problemData.IdDemands = idDemands;
             problemData.DepartureNodeId = departureId;
 
-            if (problemData.IdDemands![0][0] == 0) {
-                for (int i = 0; i < problemData.IdDemands.Count; i++) {
-                    problemData.IdDemands[i][0] += 1;
-                }
+            if (problemData.IdDemands![0][0] != 0) {
+                problemData.Offset = (int)problemData.IdDemands![0][0];
+                problemData.DepartureNodeId -= problemData.Offset; 
+            }
+            for (int i = 0; i < problemData.IdDemands.Count; i++) {
+                problemData.IdDemands[i][0] -= problemData.Offset;
             }      
     }
 
@@ -99,25 +102,25 @@ public class GeneticAlgorithmVRP
     }
 
     private double Fitness(List<int> route, ProblemData problemData) {
-        double totalDistance = problemData.DistanceMatrix![problemData.DepartureNodeId - 1, route[0] - 1];
-        double totalCapacity = problemData.IdDemands![route[0] - 1][1];
+        double totalDistance = problemData.DistanceMatrix![problemData.DepartureNodeId, route[0]];
+        double totalCapacity = problemData.IdDemands![route[0]][1];
 
         
         for (int i = 0; i < route.Count - 1; i++) {
-            int currentNode = route[i] - 1;
-            int nextNode = route[i + 1] - 1;
+            int currentNode = route[i];
+            int nextNode = route[i + 1];
 
             if (totalCapacity + problemData.IdDemands[nextNode][1] > problemData.Capacity) {
                 totalCapacity = 0;
-                totalDistance += problemData.DistanceMatrix[currentNode, problemData.DepartureNodeId - 1];
-                totalDistance += problemData.DistanceMatrix[problemData.DepartureNodeId - 1, nextNode];
+                totalDistance += problemData.DistanceMatrix[currentNode, problemData.DepartureNodeId];
+                totalDistance += problemData.DistanceMatrix[problemData.DepartureNodeId, nextNode];
             } else {
                 totalCapacity += problemData.IdDemands[nextNode][1];
                 totalDistance += problemData.DistanceMatrix[currentNode, nextNode];
             }
         }
 
-        return totalDistance + problemData.DistanceMatrix[route[^1] - 1, problemData.DepartureNodeId - 1];
+        return totalDistance + problemData.DistanceMatrix[route[^1], problemData.DepartureNodeId];
     }
     
 
@@ -244,23 +247,23 @@ public class GeneticAlgorithmVRP
     }
 
     private string printRoute(List<int> route, ProblemData problemData) {
-        double totalCapacity = problemData.IdDemands![route[problemData.DepartureNodeId - 1] - 1][1];
-        string routeString = $"{problemData.DepartureNodeId} -> ";
+        double totalCapacity = problemData.IdDemands![route[0]][1];
+        string routeString = $"{problemData.DepartureNodeId + problemData.Offset} -> ";
         
         for (int i = 0; i < route.Count - 1; i++) {
             //Console.WriteLine(totalCapacity);
-            int nextNode = route[i + 1] - 1;
+            int nextNode = route[i + 1];
 
             if (totalCapacity + problemData.IdDemands[nextNode][1] > problemData.Capacity) {
                 totalCapacity = problemData.IdDemands[nextNode][1];
-                routeString += $"{route[i]} -> {problemData.DepartureNodeId} -> ";
+                routeString += $"{route[i] + problemData.Offset} -> {problemData.DepartureNodeId + problemData.Offset} -> ";
             } else {
                 totalCapacity += problemData.IdDemands[nextNode][1];
-                routeString += $"{route[i]} -> ";
+                routeString += $"{route[i] + problemData.Offset} -> ";
             }
         }
 
-        return routeString + $"{route[^1]} -> {problemData.DepartureNodeId}";
+        return routeString + $"{route[^1] + problemData.Offset} -> {problemData.DepartureNodeId + problemData.Offset}";
     }
 
 

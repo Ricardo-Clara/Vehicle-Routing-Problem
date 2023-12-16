@@ -5,6 +5,8 @@ VisualStudioVersion = 17.5.002.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GeneticAlgorithmVRP", "GeneticAlgorithmVRP.csproj", "{1B7F7312-BD00-454A-9D11-CA1A53AE8636}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TabuSearch", "..\TabuSearch\TabuSearch.csproj", "{0D5617CA-7C41-41FC-A1C5-90EF2E834367}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,14 @@ Global
 		{1B7F7312-BD00-454A-9D11-CA1A53AE8636}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1B7F7312-BD00-454A-9D11-CA1A53AE8636}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1B7F7312-BD00-454A-9D11-CA1A53AE8636}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFB9BED3-2335-4EC9-B65C-234DDF0C8E83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFB9BED3-2335-4EC9-B65C-234DDF0C8E83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFB9BED3-2335-4EC9-B65C-234DDF0C8E83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFB9BED3-2335-4EC9-B65C-234DDF0C8E83}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D5617CA-7C41-41FC-A1C5-90EF2E834367}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D5617CA-7C41-41FC-A1C5-90EF2E834367}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D5617CA-7C41-41FC-A1C5-90EF2E834367}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D5617CA-7C41-41FC-A1C5-90EF2E834367}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

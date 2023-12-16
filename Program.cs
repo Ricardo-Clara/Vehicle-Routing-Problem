@@ -51,7 +51,12 @@ public class GeneticAlgorithmVRP
             problemData.Capacity = capacity;
             problemData.IdDemands = idDemands;
             problemData.DepartureNodeId = departureId;
-            
+
+            if (problemData.IdDemands![0][0] == 0) {
+                for (int i = 0; i < problemData.IdDemands.Count; i++) {
+                    problemData.IdDemands[i][0] += 1;
+                }
+            }      
     }
 
 
@@ -97,7 +102,6 @@ public class GeneticAlgorithmVRP
         double totalDistance = problemData.DistanceMatrix![problemData.DepartureNodeId - 1, route[0] - 1];
         double totalCapacity = problemData.IdDemands![route[0] - 1][1];
 
-       
         
         for (int i = 0; i < route.Count - 1; i++) {
             int currentNode = route[i] - 1;
@@ -240,24 +244,23 @@ public class GeneticAlgorithmVRP
     }
 
     private string printRoute(List<int> route, ProblemData problemData) {
-        double totalCapacity = problemData.IdDemands![route[0] - 1][1];
-        string routeString = "0 -> ";
+        double totalCapacity = problemData.IdDemands![route[problemData.DepartureNodeId - 1] - 1][1];
+        string routeString = $"{problemData.DepartureNodeId} -> ";
         
         for (int i = 0; i < route.Count - 1; i++) {
-            // int currentNode = route[i] - 1;
+            //Console.WriteLine(totalCapacity);
             int nextNode = route[i + 1] - 1;
 
-            Console.WriteLine(totalCapacity);
             if (totalCapacity + problemData.IdDemands[nextNode][1] > problemData.Capacity) {
                 totalCapacity = problemData.IdDemands[nextNode][1];
-                routeString += $"{route[i]} -> {problemData.DepartureNodeId - 1} -> ";
+                routeString += $"{route[i]} -> {problemData.DepartureNodeId} -> ";
             } else {
                 totalCapacity += problemData.IdDemands[nextNode][1];
                 routeString += $"{route[i]} -> ";
             }
         }
 
-        return routeString + $"{route[^1]} -> {problemData.DepartureNodeId - 1}";
+        return routeString + $"{route[^1]} -> {problemData.DepartureNodeId}";
     }
 
 
@@ -265,12 +268,12 @@ public class GeneticAlgorithmVRP
         GeneticAlgorithmVRP geneticAlgorithmVRP = new();
         ProblemData problemData = new();
         // Get path from user
-        geneticAlgorithmVRP.LoadCoordinates("C:\\Users\\rvcla\\OneDrive\\Desktop\\F-n045-k4.xml", problemData);
+        geneticAlgorithmVRP.LoadCoordinates("C:\\Users\\rvcla\\OneDrive\\Desktop\\VeRoLogV08_16.xml", problemData);
         geneticAlgorithmVRP.CalcDistanceMatrix(problemData);
         // Get population size from user
-        List<List<int>> population = geneticAlgorithmVRP.GenerateFirstPopulation(problemData.IdDemands!, 300);
+        List<List<int>> population = geneticAlgorithmVRP.GenerateFirstPopulation(problemData.IdDemands!, 100);
         // Get generations from user
-        int generations = 1000;
+        int generations = 2000;
 
         for (int i = 0; i < generations; i++) {
             population = geneticAlgorithmVRP.TournamentSelection(population, problemData);

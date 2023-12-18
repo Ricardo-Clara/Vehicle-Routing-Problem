@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TabuSearch", "..\TabuSearch
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimmulatedAnnealingVRP", "SimmulatedAnnealingVRP\SimmulatedAnnealingVRP.csproj", "{43361B54-363C-461E-851B-BA12028713AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataProcessing", "DataProcessing\DataProcessing.csproj", "{3D8C92A8-5401-42BE-9740-006101C31C1B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{43361B54-363C-461E-851B-BA12028713AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{43361B54-363C-461E-851B-BA12028713AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{43361B54-363C-461E-851B-BA12028713AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D8C92A8-5401-42BE-9740-006101C31C1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D8C92A8-5401-42BE-9740-006101C31C1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D8C92A8-5401-42BE-9740-006101C31C1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D8C92A8-5401-42BE-9740-006101C31C1B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

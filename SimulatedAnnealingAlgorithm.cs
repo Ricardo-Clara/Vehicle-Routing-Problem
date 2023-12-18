@@ -1,15 +1,7 @@
-﻿namespace SimmulatedAnnealing {
+using DataProcessing;
+using ObjectiveFunction;
 
-    public class ProblemData {
-
-        public List<double[]>? Coordinates { get; set; }
-        public double[,]? DistanceMatrix { get; set; }
-        public double? Capacity { get; set; }
-        public List<double[]>? IdDemands { get; set; }
-        public int Offset { get; set;}
-        public int DepartureNodeId { get; set; }
-    }
-
+namespace SimmulatedAnnealing {
     static class SimmulatedAnnealingVRP {
         static List<int> GenerateRoute(List<double[]> idDemands, ProblemData problemData) {
             Random random = new();
@@ -31,27 +23,6 @@
             return route;
         }
 
-        static double Fitness(List<int> route, ProblemData problemData) {
-            double totalDistance = problemData.DistanceMatrix![problemData.DepartureNodeId, route[0]];
-            double totalCapacity = problemData.IdDemands![route[0]][1];
-
-            
-            for (int i = 0; i < route.Count - 1; i++) {
-                int currentNode = route[i];
-                int nextNode = route[i + 1];
-
-                if (totalCapacity + problemData.IdDemands[nextNode][1] > problemData.Capacity) {
-                    totalCapacity = 0;
-                    totalDistance += problemData.DistanceMatrix[currentNode, problemData.DepartureNodeId];
-                    totalDistance += problemData.DistanceMatrix[problemData.DepartureNodeId, nextNode];
-                } else {
-                    totalCapacity += problemData.IdDemands[nextNode][1];
-                    totalDistance += problemData.DistanceMatrix[currentNode, nextNode];
-                }
-            }
-
-            return totalDistance + problemData.DistanceMatrix[route[^1], problemData.DepartureNodeId];
-        }
         static int[] FindNearestNeighbor(int currentLocation, List<double[]> remainingLocations, double[,] distanceMatrix) {
             int nearestNeighbor = -1;
             double minDistance = double.MaxValue;
@@ -90,18 +61,18 @@
 
             while (temperature > minTemperature) {
                 List<List<int>> neighborhood = GenerateNeighborhood(currentSolution);
-                double bestSolutionFitness = Fitness(bestSolution, problemData);
-                double currentFitness = Fitness(currentSolution, problemData);
+                double bestSolutionFitness = Fitness.Calc(bestSolution, problemData);
+                double currentFitness = Fitness.Calc(currentSolution, problemData);
 
                 foreach (List<int> neighbor in neighborhood) {
-                    double neighborFitness = Fitness(neighbor, problemData);
+                    double neighborFitness = Fitness.Calc(neighbor, problemData);
 
                     if (neighborFitness < currentFitness || randomNumber.NextDouble() < Math.Exp((currentFitness - neighborFitness) / temperature)) {
                         currentSolution = neighbor;
                         currentFitness = neighborFitness;
                     }
                 }
-                if (Fitness(currentSolution, problemData) < bestSolutionFitness) {
+                if (Fitness.Calc(currentSolution, problemData) < bestSolutionFitness) {
                     bestSolution = currentSolution;
                 }
 
@@ -111,4 +82,3 @@
         }
     }
 }
-

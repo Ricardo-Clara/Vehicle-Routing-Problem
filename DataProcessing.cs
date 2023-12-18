@@ -35,7 +35,7 @@ namespace DataProcessing {
 
                 foreach (XElement element in doc.Descendants("request")) {
                     double demand = double.Parse(element.Element("quantity")!.Value);
-                    double id = double.Parse(element.Attribute("id")!.Value);
+                    double id = double.Parse(element.Attribute("node")!.Value);
                     
                     
                     double[] id_demand = { id , demand };
@@ -49,11 +49,10 @@ namespace DataProcessing {
 
                 if (problemData.IdDemands![0][0] != 0) {
                     problemData.Offset = (int)problemData.IdDemands![0][0];
-                    problemData.DepartureNodeId -= problemData.Offset; 
                 }
                 for (int i = 0; i < problemData.IdDemands.Count; i++) {
                     problemData.IdDemands[i][0] -= problemData.Offset;
-                }      
+                } 
         }
     }
 
@@ -74,23 +73,24 @@ namespace DataProcessing {
 
     public class Print {
         public static string Route(List<int> route, ProblemData problemData) {
-            double totalCapacity = problemData.IdDemands![route[0]][1];
-            string routeString = $"{problemData.DepartureNodeId + problemData.Offset} -> ";
+            double totalCapacity = 0;
+            int departureId = problemData.DepartureNodeId;
+            string routeString = $"{departureId} -> ";
             
-            for (int i = 0; i < route.Count - 1; i++) {
-                //Console.WriteLine(totalCapacity);
-                int nextNode = route[i + 1];
+            for (int i = 0; i < route.Count; i++) {
+                int currentNode = route[i];
 
-                if (totalCapacity + problemData.IdDemands[nextNode][1] > problemData.Capacity) {
-                    totalCapacity = problemData.IdDemands[nextNode][1];
-                    routeString += $"{route[i] + problemData.Offset} -> {problemData.DepartureNodeId + problemData.Offset} -> ";
+                if (totalCapacity + problemData.IdDemands![currentNode][1] > problemData.Capacity) {
+                    totalCapacity = problemData.IdDemands[currentNode][1];
+                    routeString += $"{departureId} -> {currentNode + problemData.Offset} -> ";
                 } else {
-                    totalCapacity += problemData.IdDemands[nextNode][1];
-                    routeString += $"{route[i] + problemData.Offset} -> ";
+                    totalCapacity += problemData.IdDemands[currentNode][1];
+                    routeString += $"{currentNode + problemData.Offset} -> ";
                 }
             }
+            
 
-            return routeString + $"{route[^1] + problemData.Offset} -> {problemData.DepartureNodeId + problemData.Offset}";
+            return routeString + $"{problemData.DepartureNodeId}";
         }
     }
 }

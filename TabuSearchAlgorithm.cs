@@ -3,10 +3,9 @@ using ObjectiveFunction;
 
 namespace Tabu {
     static class TabuSearch {
-        static List<int> GenerateSolution(List<double[]> idDemands, ProblemData problemData) {
-            Random random = new();
-
-            List<double[]> idDemandsCopy = new (idDemands);
+        private static readonly Random random = new();
+        static List<int> GenerateRoute(ProblemData problemData) {
+            List<double[]> idDemandsCopy = new (problemData.IdDemands!);
             List<int> route = new();
             int size = idDemandsCopy.Count;
             int randomNumber = random.Next(0, size);
@@ -23,17 +22,22 @@ namespace Tabu {
             return route;
         }
 
-        static List<List<int>> GenerateNeighborhood(List<int> route) {
+        static List<List<int>> GenerateNeighborhood(List<int> route, int populationSize) {
             List<List<int>> neighborhood = new();
 
-            for (int i = 1; i < route.Count - 1; i++) {
-                for (int j = i + 1; j < route.Count - 1; j++) {
-                    List<int> routeCopy = new(route);
-                    (routeCopy[i], route[j]) = (routeCopy[j], route[i]);
+            for (int i = 0; i < populationSize; i++) {
+                List<int> routeCopy = new(route);
+                int index1 = random.Next(0, route.Count);
+                int index2 = random.Next(0, route.Count);
 
-                    neighborhood.Add(routeCopy);
+                while (index1 == index2) {
+                    index2 = random.Next(0, route.Count);
                 }
+
+                (routeCopy[index1], routeCopy[index2]) = (routeCopy[index2], routeCopy[index1]);
+                neighborhood.Add(routeCopy);
             }
+            
             return neighborhood;
         }
 
@@ -54,13 +58,13 @@ namespace Tabu {
             return result;
         }
 
-        static List<int> TabuSearchAlgorithm(List<int> solution, int generations, int tabuSize, ProblemData problemData) {
-            List<int> bestSolution = solution;
-            List<int> currentSolution = solution;
+        public static void Solve(int generations, int tabuSize, ProblemData problemData, int populationSize) {
+            List<int> bestSolution = GenerateRoute(problemData);
+            List<int> currentSolution = GenerateRoute(problemData);
             List<List<int>> tabuList = new();
 
             for (int i = 0; i < generations; i++) {
-                List<List<int>> neighborhood = GenerateNeighborhood(currentSolution);
+                List<List<int>> neighborhood = GenerateNeighborhood(currentSolution, populationSize);
                 List<int> bestNeighbor = new();
                 double bestNeighborFitness = double.MaxValue;
 
@@ -88,7 +92,7 @@ namespace Tabu {
                     bestSolution = bestNeighbor;
                 }
             }
-            return bestSolution;
+            Console.WriteLine($"Best solution: {Print.Route(bestSolution, problemData)} with fitness {Fitness.Calc(bestSolution, problemData):0.00}");
         }
     }
 }

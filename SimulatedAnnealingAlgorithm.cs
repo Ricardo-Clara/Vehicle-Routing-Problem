@@ -1,12 +1,11 @@
 using DataProcessing;
 using ObjectiveFunction;
 
-namespace SimmulatedAnnealing {
-    static class SimmulatedAnnealingVRP {
-        static List<int> GenerateRoute(List<double[]> idDemands, ProblemData problemData) {
-            Random random = new();
-
-            List<double[]> idDemandsCopy = new (idDemands);
+namespace SimulatedAnnealing {
+    static class SimulatedAnnealingVRP {
+        private static readonly Random random = new();
+        public static List<int> GenerateRoute(ProblemData problemData) {
+            List<double[]> idDemandsCopy = new (problemData.IdDemands!);
             List<int> route = new();
             int size = idDemandsCopy.Count;
             int randomNumber = random.Next(0, size);
@@ -15,7 +14,7 @@ namespace SimmulatedAnnealing {
             idDemandsCopy.RemoveAt(randomNumber);
 
             for (int i = 0; i < size - 1; i++) {
-                int[] nearestNeighbor = FindNearestNeighbor(route[i], idDemandsCopy, problemData.DistanceMatrix!);
+                int[] nearestNeighbor = FindNearestNeighbor(route[i], idDemandsCopy, problemData);
                 route.Add(nearestNeighbor[0]);
                 idDemandsCopy.RemoveAt(nearestNeighbor[1]);
             }
@@ -23,13 +22,13 @@ namespace SimmulatedAnnealing {
             return route;
         }
 
-        static int[] FindNearestNeighbor(int currentLocation, List<double[]> remainingLocations, double[,] distanceMatrix) {
+        static int[] FindNearestNeighbor(int currentLocation, List<double[]> remainingLocations, ProblemData problemData) {
             int nearestNeighbor = -1;
             double minDistance = double.MaxValue;
             int index = 0;
 
             foreach (double[] location in remainingLocations) {
-                double distance = distanceMatrix[currentLocation, (int)location[0]];
+                double distance = problemData.DistanceMatrix![currentLocation, (int)location[0]];
                 if (distance < minDistance) {
                     minDistance = distance;
                     nearestNeighbor = (int)location[0];
@@ -39,35 +38,40 @@ namespace SimmulatedAnnealing {
             int[] result = {nearestNeighbor, index};
             return result;
         }
-        static List<List<int>> GenerateNeighborhood(List<int> route) {
+        static List<List<int>> GenerateNeighborhood(List<int> route, int populationSize) {
             List<List<int>> neighborhood = new();
 
-            for (int i = 1; i < route.Count - 1; i++) {
-                for (int j = i + 1; j < route.Count - 1; j++) {
-                    List<int> routeCopy = new(route);
-                    (routeCopy[i], route[j]) = (routeCopy[j], route[i]);
+            for (int i = 0; i < populationSize; i++) {
+                List<int> routeCopy = new(route);
+                int index1 = random.Next(0, route.Count);
+                int index2 = random.Next(0, route.Count);
 
-                    neighborhood.Add(routeCopy);
+                while (index1 == index2) {
+                    index2 = random.Next(0, route.Count);
                 }
+
+                (routeCopy[index1], routeCopy[index2]) = (routeCopy[index2], routeCopy[index1]);
+                neighborhood.Add(routeCopy);
             }
+            
             return neighborhood;
         }
 
 
-        static List<int> SimulatedAnnealingAlgorithm(List<int> solution, double temperature, double minTemperature, double alpha, ProblemData problemData) {
-            List<int> bestSolution = solution;
-            List<int> currentSolution = solution;
-            Random randomNumber = new();
+        public static void Solve(double temperature, double minTemperature, double coolingRate, int populationSize, ProblemData problemData) {
+            List<int> bestSolution = GenerateRoute(problemData);
+            List<int> currentSolution = bestSolution;
+            double bestSolutionFitness = 0;
 
             while (temperature > minTemperature) {
-                List<List<int>> neighborhood = GenerateNeighborhood(currentSolution);
-                double bestSolutionFitness = Fitness.Calc(bestSolution, problemData);
+                List<List<int>> neighborhood = GenerateNeighborhood(currentSolution, populationSize);
+                bestSolutionFitness = Fitness.Calc(bestSolution, problemData);
                 double currentFitness = Fitness.Calc(currentSolution, problemData);
 
                 foreach (List<int> neighbor in neighborhood) {
                     double neighborFitness = Fitness.Calc(neighbor, problemData);
 
-                    if (neighborFitness < currentFitness || randomNumber.NextDouble() < Math.Exp((currentFitness - neighborFitness) / temperature)) {
+                    if (neighborFitness < currentFitness || random.NextDouble() < Math.Exp((currentFitness - neighborFitness) / temperature)) {
                         currentSolution = neighbor;
                         currentFitness = neighborFitness;
                     }
@@ -76,9 +80,10 @@ namespace SimmulatedAnnealing {
                     bestSolution = currentSolution;
                 }
 
-                temperature *= alpha;
+                temperature *= coolingRate;
             }
-            return bestSolution;
+            Console.WriteLine($"Best solution: {Print.Route(bestSolution, problemData)} with fitness {bestSolutionFitness:0.00}");
         }
+
     }
 }

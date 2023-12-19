@@ -61,7 +61,7 @@ namespace Tabu {
         public static void Solve(int generations, int tabuSize, ProblemData problemData, int populationSize) {
             List<int> bestSolution = GenerateRoute(problemData);
             List<int> currentSolution = GenerateRoute(problemData);
-            List<List<int>> tabuList = new();
+            HashSet<List<int>> tabuList = new();
 
             for (int i = 0; i < generations; i++) {
                 List<List<int>> neighborhood = GenerateNeighborhood(currentSolution, populationSize);
@@ -78,7 +78,7 @@ namespace Tabu {
                         }
                     }
                 }
-                if (bestNeighbor.Count == 0) {
+                if (bestNeighborFitness == double.MaxValue) {
                     break;
                 }
 
@@ -86,7 +86,7 @@ namespace Tabu {
                 tabuList.Add(currentSolution);
 
                 if (tabuList.Count > tabuSize) {
-                    tabuList.RemoveAt(0);
+                    tabuList.Remove(tabuList.First());
                 }
                 if (Fitness.Calc(bestNeighbor, problemData) < Fitness.Calc(bestSolution, problemData)) {
                     bestSolution = bestNeighbor;

@@ -4,7 +4,12 @@ using ObjectiveFunction;
 namespace GeneticAlgorithm {
     public class GeneticAlgorithmVRP
     {
-        private static readonly Random random = new();
+        private static Random random = new();
+
+        public static void SetSeed(int seed)
+        {
+            random = new Random(seed);
+        }
         static List<List<int>> GenerateFirstPopulation(List<double[]> idDemands, int populationSize) {
             List<List<int>> population = new();
             int currentPopulationSize = 0;
@@ -127,6 +132,59 @@ namespace GeneticAlgorithm {
         Tournament selection (TS) - escolher dois individuos ao calhas, o que tiver o maior valor de fitness passa para a próxima
         geração
         */
+        
+        static private List<List<int>> ElitismSelection(List<List<int>> population, int elitismPercentage, ProblemData problemData) {
+            int elitismCount = elitismPercentage * population.Count / 100;
+
+            // Select the top 'elitismCount' individuals based on fitness
+            List<List<int>> elitePopulation = population
+                .OrderBy(route => Fitness.Calc(route, problemData))
+                .Take(elitismCount)
+                .ToList();
+
+            return elitePopulation;
+        }
+
+        static private List<List<int>> RouletteSelection(List<List<int>> population, ProblemData problemData) {
+            double totalFitness = 0;
+            List<double> relativeFitness = new();
+
+            foreach (List<int> route in population) {
+                totalFitness += Fitness.Calc(route, problemData);
+            }
+            foreach (List<int> route in population) {
+                double fitness = Fitness.Calc(route, problemData);
+                relativeFitness.Add(fitness / totalFitness);
+            }
+
+            List<double> roulette = new();
+            double totalRelativeFitness = 0;
+            foreach (double relative in relativeFitness) {
+                totalRelativeFitness += relative;
+                roulette.Add(totalRelativeFitness);
+            }
+
+            List<List<int>> newPopulation = new();
+            int rouletteSize = roulette.Count;
+            for (int i = 0; i < population.Count; i++) {
+                double spin = random.NextDouble();
+
+                for (int j = 0; j < rouletteSize; j++) {
+                    if (roulette[j] <= spin) {
+                        newPopulation.Add(population[j]);
+                        break;
+                    }
+                }
+            }
+            return newPopulation;
+        }
+
+
+
+
+
+
+
         static private List<List<int>> TournamentSelection(List<List<int>> population, ProblemData problemData) {
             List<List<int>> selectedPopulation = new();
             int size = population.Count;
@@ -147,7 +205,7 @@ namespace GeneticAlgorithm {
             return selectedPopulation;
         }
 
-        public static void Solve(int generations, int populationSize, float crossoverChance, float mutationChance, ProblemData problemData) {
+        public static double Solve(int generations, int populationSize, float crossoverChance, float mutationChance, ProblemData problemData) {
             
             
             // Get population size from user
@@ -156,16 +214,20 @@ namespace GeneticAlgorithm {
             
 
             for (int i = 0; i < generations; i++) {
-                population = TournamentSelection(population, problemData);
+                //population = TournamentSelection(population,problemData);
+                List<List<int>> elitePopulation = ElitismSelection(population, 20, problemData);
                 // Get crossover chance from user
                 population = Crossover(population, crossoverChance);
                 // Get mutation chance from user
                 population = Mutation(population, mutationChance);
+                population.RemoveRange(0, elitePopulation.Count);
+                population.AddRange(elitePopulation);
             }
 
             List<int> bestRoute = population.OrderBy(route => Fitness.Calc(route, problemData)).First();
             double bestFitness = Fitness.Calc(bestRoute, problemData);
-            Console.WriteLine($"Best solution: {Print.Route(bestRoute, problemData)} with fitness {bestFitness:0.00}");
+            //Console.WriteLine($"Best solution: {Print.Route(bestRoute, problemData)} with fitness {bestFitness:0.00}");
+            return bestFitness;
         }
     }
 }

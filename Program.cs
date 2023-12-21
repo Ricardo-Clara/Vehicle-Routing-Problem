@@ -20,20 +20,30 @@ using ObjectiveFunction;
 // Console.WriteLine(ObjectiveFunction.Fitness.functionCallCount);
 
 //Start
-string path = @"C:\Users\rvcla\Desktop\VRP\Data_Sets\X-n200-k36.xml";
+// Used Files: C:\Users\rvcla\Desktop\VRP\Data_Sets\X-n200-k36.xml
+//C:\Users\rvcla\Desktop\VRP\Data_Sets\A-n53-k07.xml
+//C:\Users\rvcla\Desktop\VRP\Data_Sets\X-n1001-k43.xml
+ 
+string path = @"C:\Users\rvcla\Desktop\VRP\Data_Sets\X-n1001-k43.xml";
 ProblemData data = new();
 Load.LoadCoordinates(path, data);
 DistanceMatrix.Calc(data);
 
 List<Result> results = new();
 
-int generations = 5000;
-int popSize = 100;
-float crossoverChance = 0.8f;
-float mutationChance = 0.1f;
-int multiplier = 2;
+int generations = 10000;
+// temperature = 1000;
+//double minTemperature = 0.001;
+//double coolingRate = 0.99;
+int popSize = 300;
+//int tabuSize = 150;
+float crossoverChance = 1f;
+float mutationChance = 0.01f;
 
-for (int run = 40 * multiplier; run <= 40 * (multiplier + 1); run++) {
+
+int multiplier = 111; //100
+
+for (int run = (40 * multiplier) + 1; run <= 40 * (multiplier + 1); run++) {
     Result result = new();
     double[] parameters = { generations, popSize, crossoverChance, mutationChance };
     result.Parameters = parameters;
@@ -42,7 +52,7 @@ for (int run = 40 * multiplier; run <= 40 * (multiplier + 1); run++) {
     Stopwatch stopwatch = new();
     stopwatch.Start();
 
-    double fitness = GeneticAlgorithmVRP.Solve(generations, popSize, crossoverChance, mutationChance, data);
+    double fitness = GeneticAlgorithmVRP.Solve(generations,popSize,crossoverChance,mutationChance, data);
 
     stopwatch.Stop();
 
@@ -57,7 +67,7 @@ for (int run = 40 * multiplier; run <= 40 * (multiplier + 1); run++) {
 
 var options = new JsonSerializerOptions { WriteIndented = true };
 string json = JsonSerializer.Serialize(results, options);
-File.WriteAllText(@$"C:\Users\rvcla\OneDrive - Universidade do Algarve\MEI\S1\Metaheuristics\Results\GA_X-n200-k36_generations{multiplier + 1}.json", json);
+File.WriteAllText(@$"C:\Users\rvcla\OneDrive - Universidade do Algarve\MEI\S1\Metaheuristics\Results\GA_X-n1001-k43_final.json", json);
 
 Console.WriteLine("Finished");
 

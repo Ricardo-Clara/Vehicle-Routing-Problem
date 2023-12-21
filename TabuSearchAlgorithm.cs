@@ -3,7 +3,11 @@ using ObjectiveFunction;
 
 namespace Tabu {
     static class TabuSearch {
-        private static readonly Random random = new();
+        private static Random random = new();
+        public static void SetSeed(int seed)
+        {
+            random = new Random(seed);
+        }
         static List<int> GenerateRoute(ProblemData problemData) {
             List<double[]> idDemandsCopy = new (problemData.IdDemands!);
             List<int> route = new();
@@ -58,7 +62,7 @@ namespace Tabu {
             return result;
         }
 
-        public static void Solve(int generations, int tabuSize, ProblemData problemData, int populationSize) {
+        public static double Solve(int generations, int tabuSize, ProblemData problemData, int populationSize) {
             List<int> bestSolution = GenerateRoute(problemData);
             List<int> currentSolution = GenerateRoute(problemData);
             HashSet<List<int>> tabuList = new();
@@ -78,6 +82,7 @@ namespace Tabu {
                         }
                     }
                 }
+                //If it didnt find a better solution the loop breaks.
                 if (bestNeighborFitness == double.MaxValue) {
                     break;
                 }
@@ -92,7 +97,8 @@ namespace Tabu {
                     bestSolution = bestNeighbor;
                 }
             }
-            Console.WriteLine($"Best solution: {Print.Route(bestSolution, problemData)} with fitness {Fitness.Calc(bestSolution, problemData):0.00}");
+            
+            return Fitness.Calc(bestSolution, problemData);
         }
     }
 }

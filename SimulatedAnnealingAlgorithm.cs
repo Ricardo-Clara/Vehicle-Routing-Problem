@@ -3,8 +3,13 @@ using ObjectiveFunction;
 
 namespace SimulatedAnnealing {
     static class SimulatedAnnealingVRP {
-        private static readonly Random random = new();
+        private static Random random = new();
+        public static void SetSeed(int seed)
+        {
+            random = new Random(seed);
+        }
         public static List<int> GenerateRoute(ProblemData problemData) {
+            // Generates a route using nearest neighbor, joins the closest nodes
             List<double[]> idDemandsCopy = new (problemData.IdDemands!);
             List<int> route = new();
             int size = idDemandsCopy.Count;
@@ -39,6 +44,7 @@ namespace SimulatedAnnealing {
             return result;
         }
         static List<List<int>> GenerateNeighborhood(List<int> route, int populationSize) {
+            // Makes a slight perturbation in the solution by swaping two random nodes
             List<List<int>> neighborhood = new();
 
             for (int i = 0; i < populationSize; i++) {
@@ -58,7 +64,7 @@ namespace SimulatedAnnealing {
         }
 
 
-        public static void Solve(double temperature, double minTemperature, double coolingRate, int populationSize, ProblemData problemData) {
+        public static double Solve(double temperature, double minTemperature, double coolingRate, int populationSize, ProblemData problemData) {
             List<int> bestSolution = GenerateRoute(problemData);
             List<int> currentSolution = bestSolution;
             double bestSolutionFitness = 0;
@@ -70,7 +76,7 @@ namespace SimulatedAnnealing {
 
                 foreach (List<int> neighbor in neighborhood) {
                     double neighborFitness = Fitness.Calc(neighbor, problemData);
-
+                    // When the temperature is higher its easier to accept worse solutions
                     if (neighborFitness < currentFitness || random.NextDouble() < Math.Exp((currentFitness - neighborFitness) / temperature)) {
                         currentSolution = neighbor;
                         currentFitness = neighborFitness;
@@ -82,7 +88,8 @@ namespace SimulatedAnnealing {
 
                 temperature *= coolingRate;
             }
-            Console.WriteLine($"Best solution: {Print.Route(bestSolution, problemData)} with fitness {bestSolutionFitness:0.00}");
+            
+            return bestSolutionFitness;
         }
 
     }

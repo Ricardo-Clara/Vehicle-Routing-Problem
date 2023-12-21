@@ -10,11 +10,12 @@ namespace GeneticAlgorithm {
         {
             random = new Random(seed);
         }
+
         static List<List<int>> GenerateFirstPopulation(List<double[]> idDemands, int populationSize) {
             List<List<int>> population = new();
             int currentPopulationSize = 0;
             
-
+            //Randomly join nodes to create a route
             while (currentPopulationSize < populationSize) {
                 List<double[]> idDemandsCopy = new (idDemands);
                 int size = idDemandsCopy.Count;
@@ -36,6 +37,7 @@ namespace GeneticAlgorithm {
         static List<List<int>> Crossover(List<List<int>> population, double crossoverChance) {
             List<List<int>> newPopulation = new();
 
+            //Iterate trough population and crossover based on chance and random crossover points
             for (int i = 0; i < population.Count - 1; i += 2) {
                 int crossoverPoint1 = random.Next(0, population[i].Count - 1);
                 int crossoverPoint2 = random.Next(0, population[i].Count - 1);
@@ -67,17 +69,16 @@ namespace GeneticAlgorithm {
             HashSet<int> visitedIds = new();
             int index = 0;
 
+            //Fill the remaining space only with nodes that are not between the crossover points of mother
             for (int i = startIndex; i <= endIndex; i++) {
                 visitedIds.Add(mother[i]);
             }
 
             while (offspring.Count != startIndex) {
-                if (visitedIds.Contains(father[index])) {
-                    index++;
-                } else {
-                    offspring.Add(father[index]);
-                    index++;
-                }
+                if (!visitedIds.Contains(father[index])) {
+                    offspring.Add(father[index]);   
+                } 
+                index++;
             }
 
             for (int i = startIndex; i <= endIndex; i++) {
@@ -85,19 +86,17 @@ namespace GeneticAlgorithm {
             }
 
             while (index < father.Count) {
-                if (visitedIds.Contains(father[index])) {
-                    index++;
-                } else {
-                    offspring.Add(father[index]);
-                    index++;
-                }
+                if (!visitedIds.Contains(father[index])) {
+                    offspring.Add(father[index]);   
+                } 
+                index++;
             }
 
             return offspring;
         }
 
         static private List<List<int>> Mutation(List<List<int>> population, float mutationChance) {
-            //Choose two indexes and swap them
+            //Choose two indexes and swap the nodes
             List<List<int>> newPopulation = new();
 
             for (int i = 0; i < population.Count; i++) {
@@ -121,74 +120,11 @@ namespace GeneticAlgorithm {
             return newPopulation;
         }
 
-        /*
-        Roulette wheel selection (RWS) - chance de ser escolhido é proporcional ao valor do fitness;
-
-        Elitism selection (ES) - uma percentagem da população, ordenada por fitness, é sempre transferida para a próxima
-                                população, assim as melhores soluções não são perdidas.
-        
-        Stochastic universal sampling selection (SUSS) - rolar a roleta apenas uma vez e preencher a próxima geração.
-
-        Tournament selection (TS) - escolher dois individuos ao calhas, o que tiver o maior valor de fitness passa para a próxima
-        geração
-        */
-        
-        static private List<List<int>> ElitismSelection(List<List<int>> population, int elitismPercentage, ProblemData problemData) {
-            int elitismCount = elitismPercentage * population.Count / 100;
-
-            // Select the top 'elitismCount' individuals based on fitness
-            List<List<int>> elitePopulation = population
-                .OrderBy(route => Fitness.Calc(route, problemData))
-                .Take(elitismCount)
-                .ToList();
-
-            return elitePopulation;
-        }
-
-        static private List<List<int>> RouletteSelection(List<List<int>> population, ProblemData problemData) {
-            double totalFitness = 0;
-            List<double> relativeFitness = new();
-
-            foreach (List<int> route in population) {
-                totalFitness += Fitness.Calc(route, problemData);
-            }
-            foreach (List<int> route in population) {
-                double fitness = Fitness.Calc(route, problemData);
-                relativeFitness.Add(fitness / totalFitness);
-            }
-
-            List<double> roulette = new();
-            double totalRelativeFitness = 0;
-            foreach (double relative in relativeFitness) {
-                totalRelativeFitness += relative;
-                roulette.Add(totalRelativeFitness);
-            }
-
-            List<List<int>> newPopulation = new();
-            int rouletteSize = roulette.Count;
-            for (int i = 0; i < population.Count; i++) {
-                double spin = random.NextDouble();
-
-                for (int j = 0; j < rouletteSize; j++) {
-                    if (roulette[j] <= spin) {
-                        newPopulation.Add(population[j]);
-                        break;
-                    }
-                }
-            }
-            return newPopulation;
-        }
-
-
-
-
-
-
-
         static private List<List<int>> TournamentSelection(List<List<int>> population, ProblemData problemData) {
             List<List<int>> selectedPopulation = new();
             int size = population.Count;
-
+            
+            // Selects next population by picking two random routes and the one with the lowest fitness passes to the next population
             while (selectedPopulation.Count < size) {
                 int firstIndex = random.Next(0, size);
                 int secondIndex = random.Next(0, size);
@@ -206,27 +142,32 @@ namespace GeneticAlgorithm {
         }
 
         public static double Solve(int generations, int populationSize, float crossoverChance, float mutationChance, ProblemData problemData) {
-            
-            
-            // Get population size from user
+            // Generate population
             List<List<int>> population = GenerateFirstPopulation(problemData.IdDemands!, populationSize);
-            // Get generations from user
-            
+            int stuckCounter= 0;
+            List<int> previousSolution = population.OrderBy(route => Fitness.Calc(route, problemData)).First();
 
             for (int i = 0; i < generations; i++) {
-                //population = TournamentSelection(population,problemData);
-                List<List<int>> elitePopulation = ElitismSelection(population, 20, problemData);
-                // Get crossover chance from user
+                
+                // Select population
+                population = TournamentSelection(population,problemData);
+                // Crossover
                 population = Crossover(population, crossoverChance);
-                // Get mutation chance from user
+                // Mutation
                 population = Mutation(population, mutationChance);
-                population.RemoveRange(0, elitePopulation.Count);
-                population.AddRange(elitePopulation);
+                
+                // If the algorithm gets stuck on a local optimum it finishes the execution
+                if (stuckCounter == 150) break;
+                if (previousSolution == population.OrderBy(route => Fitness.Calc(route, problemData)).First()) {
+                    stuckCounter++;
+                } else {
+                    previousSolution = population.OrderBy(route => Fitness.Calc(route, problemData)).First();
+                    stuckCounter = 0;
+                }
             }
 
             List<int> bestRoute = population.OrderBy(route => Fitness.Calc(route, problemData)).First();
             double bestFitness = Fitness.Calc(bestRoute, problemData);
-            //Console.WriteLine($"Best solution: {Print.Route(bestRoute, problemData)} with fitness {bestFitness:0.00}");
             return bestFitness;
         }
     }
